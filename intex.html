@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrossel de Comparação Contínuo</title>
+    <!-- Carrega o Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fonte Inter (padrão do Tailwind) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Garante que o conteúdo não vaze horizontalmente */
+            overflow-x: hidden;
+        }
+
+        /* Animação de rotação */
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Animação de rotação inversa para o conteúdo */
+        @keyframes rotate-inverse {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(-360deg);
+            }
+        }
+
+        /* Animação de scroll horizontal */
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                /* Move 50% da largura total (o tamanho da lista original) */
+                transform: translateX(-50%);
+            }
+        }
+
+        /* O container que segura os cards e será animado */
+        .carousel-track {
+            display: flex;
+            /* Aplica a animação */
+            animation: scroll 60s linear infinite; /* A duração será sobreposta pelo JS */
+            /* Propriedade para otimizar a performance da animação */
+            will-change: transform;
+        }
+
+        /* Pausa a animação ao passar o mouse */
+        .carousel-track:hover {
+            animation-play-state: paused;
+        }
+
+        /* Cada card individual */
+        .carousel-card {
+            /* Impede que os cards encolham */
+            flex-shrink: 0;
+            /* Define uma largura fixa para cada card */
+            width: 288px; /* 18rem (w-72 no Tailwind) */
+        }
+
+        /* Estilo para o "bloco de estatística" amarelo (agora o container rotativo) */
+        .stat-block-rotator {
+            background-color: #f59e0b; /* yellow-500 */
+            
+            /* --- Propriedades do Hexágono --- */
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            animation: rotate 10s linear infinite;
+
+            /* --- Adicionado para centralizar o conteúdo --- */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Garante que tenha um tamanho para o clip-path aplicar */
+            width: 250px;
+            height: 200px; /* Altura ajustável conforme necessário */
+        }
+
+        /* Conteúdo de texto (que não vai girar) */
+        .stat-block-content {
+            animation: rotate-inverse 10s linear infinite;
+            
+            /* Estilos de texto movidos para cá */
+            color: #000000;
+            padding: 1.5rem; /* p-6 */
+            text-align: center;
+            font-weight: 900; /* font-black */
+            font-size: 1.875rem; /* text-3xl */
+            line-height: 2.25rem; /* leading-9 */
+        }
+
+        .info-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-evenly;
+            height: 300px;
+        }
+        
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+
+    <div class="py-8">
+        <!-- Título Principal da Lista -->
+
+        <!-- O "Palco" do Carrossel (Viewport) -->
+        <div class="w-full overflow-hidden">
+            <!-- A "Pista" que se move, contendo os cards -->
+            <div id="carousel-track" class="m-10 carousel-track">
+                <!-- Os cards serão inseridos aqui pelo JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURAÇÃO ---
+        
+        // Defina o título principal da sua lista
+        const MAIN_TITLE = "Ciência da Comparação: KGF = Quilograma-Força";
+
+        // Defina quantos segundos cada item deve levar para passar
+        const SECONDS_PER_ITEM = 4; // 4 segundos por item
+
+        // Adicione seus itens aqui
+        // Usei placehold.co para as imagens, troque pelas suas URLs
+        const ITEMS = [
+            {
+                stat: "0,0001 KGF",
+                title: "Medusas",
+                description: "Ao contrário da ilustração, águas-vivas não têm olhos e nem cérebro. Seu corpo pode ter mais de 2,5 metros de largura.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Medusa"
+            },
+            {
+                stat: "0,010 KGF",
+                title: "Formigas",
+                description: "Dependendo da espécie, as formigas podem carregar entre 20 e 100 vezes o seu próprio peso.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Formiga"
+            },
+            {
+                stat: "0,090 KGF",
+                title: "Sapos",
+                description: "Sapos, Rãs e Pererecas conseguem carregar até 3 vezes o seu próprio peso.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Sapo"
+            },
+            {
+                stat: "0,10 KGF",
+                title: "Lagartos",
+                description: "Existem mais de 4600 espécies de lagartos. A maioria tem 4 patas, alguns com 2 patas e outros sem patas.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Lagarto"
+            },
+            {
+                stat: "0,11 KGF",
+                title: "Hamsters",
+                description: "Os hamsters são animais resistentes e raramente ficam doentes.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Hamster"
+            },
+            {
+                stat: "0,125 KGF",
+                title: "Pombos",
+                description: "Em média um pombo normal consegue carregar 50g em seu bico. Entretanto, pode ser treinado para carregar 75g.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Pombo"
+            },
+            {
+                stat: "0,45 KGF",
+                title: "Ratos",
+                description: "Ratos podem levantar objetos que pesam quase um quilo. Mais do que o peso corporal médio de um rato.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Rato"
+            },
+            {
+                stat: "1,5 KGF",
+                title: "Guaxinim",
+                description: "Os guaxinins têm como principais predadores os pumas e os cães. Eles vivem em média 3 anos na natureza.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Guaxinim"
+            },
+             {
+                stat: "2000 KGF",
+                title: "Gorilas",
+                description: "Mesmo sendo muito pesados, os gorilas conseguem levantar até 10 vezes o próprio peso. Ele poderia por exemplo levantar 30 humanos.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Gorila"
+            },
+            {
+                stat: "14400 KGF",
+                title: "Baleia Azul",
+                description: "O primeiro lugar ser do maior animal do planeta. Uma baleia de 70800kg pode produzir uma força máxima de até 60kN.",
+                imageUrl: "https://placehold.co/300x300/111827/ffffff?text=Baleia+Azul"
+            }
+        ];
+
+        // --- LÓGICA DO CARROSSEL ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const track = document.getElementById('carousel-track');
+
+            // Calcula a duração total da animação
+            const totalDuration = ITEMS.length * SECONDS_PER_ITEM;
+            track.style.animationDuration = `${totalDuration}s`;
+
+            // Duplica os itens para criar o efeito de loop infinito
+            const allItems = [...ITEMS, ...ITEMS];
+
+            // Cria e insere os cards na "pista"
+            allItems.forEach(item => {
+                const card = document.createElement('div');
+                // Adiciona as classes do Tailwind para cada card
+                // Removemos 'overflow-hidden' para a rotação não ser cortada
+                card.className = "carousel-card";
+                
+                // Define o HTML interno do card
+                card.innerHTML = `
+                    <div> <!-- Colocamos tudo dentro do padding -->
+                        <div class="stat-block-rotator"> <!-- O Hexágono que gira -->
+                            <div class="stat-block-content"> <!-- O Texto que NÃO gira -->
+                                Pode Produzir
+                                <span class="block text-3xl md:text-4xl">${item.stat}</span> <!-- Fonte reduzida para caber -->
+                            </div>
+                        </div>
+                        <div class="m-4 rounded-lg shadow-lg">
+                            <div class="bg-white border-b-4 border-black">
+                                <h2 class="text-black text-2xl font-bold text-center mt-5">${item.title}</h2> <!-- Margem superior adicionada -->
+                            </div>
+                            <div class="info-container bg-black border-2 border-white">
+                                <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-48 object-contain rounded">
+                                <p class="text-gray-300 text-sm text-center">
+                                    ${item.description}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Adiciona o card à pista
+                track.appendChild(card);
+            });
+        });
+    </script>
+
+</body>
+</html>
